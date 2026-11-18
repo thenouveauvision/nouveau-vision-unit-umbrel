@@ -1,31 +1,47 @@
-name: Publish NVU Docker Images
+name: Publish NVU Dashboard Image
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "nouveau-vision-nvu/docker/**"
-      - "nouveau-vision-nvu/dashboard/**"
-      - ".github/workflows/publish-images.yml"
-
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Dashboard version to publish"
+        required: true
+        type: string
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-
-  publish:
-
-    name: Build and publish NVU images
+  publish-dashboard:
+    name: Build and publish NVU Dashboard
     runs-on: ubuntu-latest
 
     steps:
-
-      - name: Check out repository
+      - name: Check out triggering branch
         uses: actions/checkout@v4
+
+      - name: Validate requested version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid Dashboard version: $VERSION"
+            exit 1
+          fi
+
+          grep -Fq \
+            "\"dashboardVersion\": \"$VERSION\"" \
+            nouveau-vision-nvu/dashboard/server.py
+
+          grep -Fq \
+            "Dashboard $VERSION" \
+            nouveau-vision-nvu/dashboard/static/index.html
+
+          echo "PASS: source identifies as Dashboard $VERSION"
 
       - name: Set lowercase repository owner
         id: owner
@@ -43,29 +59,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and publish NVUN
-        uses: docker/build-push-action@v6
-        with:
-          context: ./nouveau-vision-nvu/docker/nvun
-          file: ./nouveau-vision-nvu/docker/nvun/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-nvun:0.2.0
-            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-nvun:latest
-
-      - name: Build and publish ASICseer
-        uses: docker/build-push-action@v6
-        with:
-          context: ./nouveau-vision-nvu/docker/asicseer
-          file: ./nouveau-vision-nvu/docker/asicseer/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: |
-            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-asicseer:0.2.0
-            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-asicseer:latest
-
       - name: Build and publish Dashboard
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: ./nouveau-vision-nvu/dashboard
@@ -73,5 +68,14 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-dashboard:0.2.2
-            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-dashboard:latest
+            ghcr.io/${{ steps.owner.outputs.name }}/nouveau-vision-dashboard:${{ inputs.version }}
+
+      - name: Report published image
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+          OWNER: ${{ steps.owner.outputs.name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "Image: ghcr.io/${OWNER}/nouveau-vision-dashboard:${VERSION}"
+          echo "Digest: ${DIGEST}"
