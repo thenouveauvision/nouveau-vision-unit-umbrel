@@ -121,6 +121,14 @@ function updateLastUpdated(timestamp) {
             return "—";
         }
 
+        if (number >= 1e18) {
+            return `${(number / 1e18).toFixed(2)}E`;
+        }
+
+        if (number >= 1e15) {
+            return `${(number / 1e15).toFixed(2)}P`;
+        }
+
         if (number >= 1e12) {
             return `${(number / 1e12).toFixed(2)}T`;
         }
@@ -1433,6 +1441,8 @@ function formatMiningDifficulty(value) {
     }
 
     const units = [
+        ["E", 1e18],
+        ["P", 1e15],
         ["T", 1e12],
         ["G", 1e9],
         ["M", 1e6],
@@ -1475,6 +1485,8 @@ function formatCompactCount(value) {
         Math.abs(number);
 
     const units = [
+        ["E", 1e18],
+        ["P", 1e15],
         ["T", 1e12],
         ["G", 1e9],
         ["M", 1e6],

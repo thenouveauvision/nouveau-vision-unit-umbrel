@@ -40,7 +40,7 @@ The app includes:
 
 In Umbrel, add the **NouveauVision Community App Store** using this repository.
 
-**Community Store:** `github.com/thenouveauvision/nouveau-vision-umbrel`
+**Community Store:** `github.com/thenouveauvision/nouveau-vision-unit-umbrel`
 
 Once the store has been added, install **Nouveau-Vision NVU** from the NouveauVision Community App Store.
 
@@ -186,7 +186,7 @@ Your Miners.
 - **Nouveau-Vision Unit:** nvu.us
 - **Detailed Network Dashboard:** node1.nvu.us
 - **Nouveau-Vision:** nouveau-vision.com
-- **NouveauVision Community App Store:** github.com/thenouveauvision/nouveau-vision-umbrel
+- **NouveauVision Community App Store:** github.com/thenouveauvision/nouveau-vision-unit-umbrel
 
 ---
 
